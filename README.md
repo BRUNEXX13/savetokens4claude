@@ -54,7 +54,45 @@ savetokens4claude/
 
 ---
 
-## 🚀 Getting Started
+## ⚡ Quick Install (one command)
+
+Open your terminal and run:
+
+```bash
+# macOS / Linux
+python3 <(curl -fsSL https://raw.githubusercontent.com/BRUNEXX13/savetokens4claude/blog/install.py)
+```
+
+```powershell
+# Windows (PowerShell)
+python (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/BRUNEXX13/savetokens4claude/blog/install.py" -UseBasicParsing).Content
+```
+
+The installer will automatically:
+1. Clone this repository to `~/mcp-token-tracker`
+2. Create an isolated Python virtual environment
+3. Install all dependencies
+4. Register the plugin in `claude_desktop_config.json`
+
+Then **restart Claude Desktop** — and you're done. 🎉
+
+### Uninstall
+
+```bash
+python3 ~/mcp-token-tracker/install.py --uninstall
+```
+
+### Custom install path
+
+```bash
+python3 <(curl -fsSL https://raw.githubusercontent.com/BRUNEXX13/savetokens4claude/blog/install.py) --dir ~/tools/mcp-tracker
+```
+
+---
+
+## 🚀 Manual Setup
+
+> Only needed if you prefer to set things up yourself.
 
 ### Prerequisites
 
@@ -65,7 +103,7 @@ savetokens4claude/
 ### 1 — Clone the repository
 
 ```bash
-git clone https://github.com/BRUNEXX13/savetokens4claude.git
+git clone --branch blog https://github.com/BRUNEXX13/savetokens4claude.git
 cd savetokens4claude
 ```
 
