@@ -55,6 +55,17 @@ def estimate_cost(input_tokens: int, output_tokens: int) -> float:
     )
 
 
+def ensure_plugin_meta(plugin_name: str) -> None:
+    """Record first-seen (install) date for a plugin if not already stored."""
+    data = load_usage()
+    meta = data.setdefault("plugin_meta", {})
+    if plugin_name not in meta:
+        meta[plugin_name] = {
+            "first_seen": datetime.now().isoformat(),
+        }
+        save_usage(data)
+
+
 def log_tool_call(
     plugin_name: str,
     tool_name: str,
@@ -83,6 +94,7 @@ def log_tool_call(
     dict
         The newly created usage record.
     """
+    ensure_plugin_meta(plugin_name)
     input_tokens  = count_tokens(json.dumps(input_data, ensure_ascii=False))
     output_tokens = count_tokens(output)
     cost_usd      = estimate_cost(input_tokens, output_tokens)

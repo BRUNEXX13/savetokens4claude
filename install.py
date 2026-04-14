@@ -27,7 +27,7 @@ from pathlib import Path
 
 REPO_URL    = "https://github.com/BRUNEXX13/savetokens4claude.git"
 REPO_BRANCH = "blog"
-SERVER_NAME = "mcp-token-tracker"
+SERVER_NAME = "mcp-save-tokens-4-claude"
 DEFAULT_DIR = Path.home() / "mcp-token-tracker"
 
 

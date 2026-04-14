@@ -31,7 +31,7 @@ import report_generator
 # Default dashboard output path
 REPORT_PATH = Path.home() / ".mcp-tracker" / "report.html"
 
-server = Server("mcp-token-tracker")
+server = Server("mcp-save-tokens-4-claude")
 
 
 # ── Tool definitions ───────────────────────────────────────────────────────────

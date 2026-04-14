@@ -136,7 +136,7 @@ Add the following entry inside `"mcpServers"`:
 ```json
 {
   "mcpServers": {
-    "mcp-token-tracker": {
+    "mcp-save-tokens-4-claude": {
       "command": "python3",
       "args": ["/absolute/path/to/savetokens4claude/server.py"]
     }
