@@ -289,6 +289,18 @@ After you get the result, track the call with track_call.
 When done, generate the token usage report.
 ```
 
+> **⚠️ Claude Code tip:** If you have other plugins/skills installed, typing generic phrases
+> like `scan my plugins` may trigger them instead of this plugin.
+> To call your tools directly, always be explicit:
+>
+> ```
+> use the mcp-save-tokens-4-claude scan_plugins tool
+> call scan_plugins from mcp-save-tokens-4-claude
+> call generate_report from mcp-save-tokens-4-claude
+> call get_stats from mcp-save-tokens-4-claude
+> call track_call from mcp-save-tokens-4-claude
+> ```
+
 ---
 
 ## ⚙️ Configuration
