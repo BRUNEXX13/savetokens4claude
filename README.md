@@ -1,6 +1,6 @@
-# ⚡ MCP Token Tracker
+# ⚡ SaveTokens4Claude
 
-> A Model Context Protocol (MCP) server that monitors **every MCP plugin installed in Claude Desktop**, counts their token usage, measures execution time, estimates USD cost, and exports a beautiful **interactive HTML dashboard** powered by Plotly + Pandas.
+> A Model Context Protocol (MCP) server that monitors **every MCP plugin installed in Claude Desktop or Claude Code**, counts their token usage, measures execution time, estimates USD cost, and exports a beautiful **interactive HTML dashboard** powered by Plotly + Pandas.
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-blue?style=flat-square&logo=python)
 ![MCP](https://img.shields.io/badge/MCP-1.0%2B-purple?style=flat-square)
@@ -8,13 +8,14 @@
 
 ---
 
-## 📸 Dashboard Preview
+## 📸 Dashboard Features
 
 The generated report is a **self-contained HTML file** (no server needed) that opens directly in your browser with:
 
-- **KPI cards** — total tokens, calls, estimated cost, avg duration
+- **KPI cards** — total tokens, session tokens (24h), calls, estimated cost, avg duration
 - **Interactive charts** — horizontal bar, input/output donut, calls pie, timeline
-- **Detailed table** — per-plugin breakdown with cost estimates
+- **Detailed table** — per-plugin breakdown with installation date, first/last seen, session tokens, and cost
+- **🔍 Search menu** — filter plugins instantly in both tables
 - **Installed plugins inventory** — all discovered servers and their sources
 
 ---
@@ -27,6 +28,9 @@ The generated report is a **self-contained HTML file** (no server needed) that o
 | 🧮 **Token Counting** | Uses `tiktoken` (cl100k_base) — same encoding as Claude / GPT-4 |
 | 💰 **Cost Estimation** | Configurable per-token pricing (input / output separately) |
 | ⏱️ **Duration Tracking** | Records wall-clock time per tool call in milliseconds |
+| 📅 **Install Date** | Shows when each plugin was installed (config file mtime) |
+| 🕐 **First / Last Seen** | Tracks first and last usage datetime per plugin |
+| 🟢 **Session Tokens** | Highlights tokens consumed in the last 24 hours |
 | 📊 **HTML Dashboard** | Single-file report with Plotly charts, opens automatically |
 | 🗄️ **Persistent Storage** | Usage data saved to `~/.mcp-tracker/usage.json` |
 | 🧹 **Reset Tool** | Clear all data with a single command |
@@ -41,6 +45,7 @@ savetokens4claude/
 ├── tracker.py           # Token counting & JSON persistence layer
 ├── config_reader.py     # Discovers installed MCP servers from configs
 ├── report_generator.py  # Builds the interactive HTML dashboard
+├── install.py           # One-command auto installer
 └── requirements.txt     # Python dependencies
 ```
 
@@ -56,36 +61,36 @@ savetokens4claude/
 
 ## ⚡ Quick Install (one command)
 
-Open your terminal and run:
+### macOS / Linux / Ubuntu (Claude Code)
 
 ```bash
-# macOS / Linux
 python3 <(curl -fsSL https://raw.githubusercontent.com/BRUNEXX13/savetokens4claude/blog/install.py)
 ```
 
+### Windows (PowerShell)
+
 ```powershell
-# Windows (PowerShell)
 python (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/BRUNEXX13/savetokens4claude/blog/install.py" -UseBasicParsing).Content
 ```
 
 The installer will automatically:
-1. Clone this repository to `~/mcp-token-tracker`
+1. Clone this repository to `~/savetokens4claude`
 2. Create an isolated Python virtual environment
 3. Install all dependencies
-4. Register the plugin in `claude_desktop_config.json`
+4. Register `mcp-save-tokens-4-claude` in your Claude config
 
-Then **restart Claude Desktop** — and you're done. 🎉
+Then **restart Claude Desktop** (or reopen Claude Code) — and you're done. 🎉
 
 ### Uninstall
 
 ```bash
-python3 ~/mcp-token-tracker/install.py --uninstall
+python3 ~/savetokens4claude/install.py --uninstall
 ```
 
 ### Custom install path
 
 ```bash
-python3 <(curl -fsSL https://raw.githubusercontent.com/BRUNEXX13/savetokens4claude/blog/install.py) --dir ~/tools/mcp-tracker
+python3 <(curl -fsSL https://raw.githubusercontent.com/BRUNEXX13/savetokens4claude/blog/install.py) --dir ~/tools/savetokens4claude
 ```
 
 ---
@@ -97,33 +102,29 @@ python3 <(curl -fsSL https://raw.githubusercontent.com/BRUNEXX13/savetokens4clau
 ### Prerequisites
 
 - **Python 3.11+**
-- **Claude Desktop** (with at least one MCP server already configured)
-- **pip**
+- **Claude Desktop** or **Claude Code** (CLI)
+- **git** and **pip**
 
 ### 1 — Clone the repository
 
 ```bash
-git clone --branch blog https://github.com/BRUNEXX13/savetokens4claude.git
-cd savetokens4claude
+git clone --branch blog https://github.com/BRUNEXX13/savetokens4claude.git ~/savetokens4claude
+cd ~/savetokens4claude
 ```
 
-### 2 — Install dependencies
+### 2 — Create virtual environment and install dependencies
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Or, if you are using a virtual environment (recommended):
+### 3 — Register the plugin
 
-```bash
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
+#### Option A — Claude Desktop
 
-### 3 — Register the server in Claude Desktop
-
-Open your Claude Desktop config file:
+Open your config file:
 
 | OS | Path |
 |---|---|
@@ -131,25 +132,49 @@ Open your Claude Desktop config file:
 | Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
 | Linux | `~/.config/Claude/claude_desktop_config.json` |
 
-Add the following entry inside `"mcpServers"`:
+Add the entry inside `"mcpServers"`:
 
 ```json
 {
   "mcpServers": {
     "mcp-save-tokens-4-claude": {
-      "command": "python3",
-      "args": ["/absolute/path/to/savetokens4claude/server.py"]
+      "command": "/home/your-user/savetokens4claude/.venv/bin/python3",
+      "args": ["/home/your-user/savetokens4claude/server.py"]
     }
   }
 }
 ```
 
-> **Windows users:** use `python` instead of `python3`, and escape backslashes in the path:
-> `"C:\\Users\\you\\savetokens4claude\\server.py"`
+> **Windows:** use `python` and escape backslashes:
+> `"C:\\Users\\you\\savetokens4claude\\.venv\\Scripts\\python.exe"`
 
-### 4 — Restart Claude Desktop
+Restart Claude Desktop — done.
 
-Close and reopen Claude Desktop. The five tracker tools will now appear in Claude's tool list automatically.
+#### Option B — Claude Code / Claude CLI (Linux / Ubuntu)
+
+Create a `.mcp.json` file in your project root:
+
+```bash
+cat > /path/to/your-project/.mcp.json << EOF
+{
+  "mcpServers": {
+    "mcp-save-tokens-4-claude": {
+      "command": "/home/$USER/savetokens4claude/.venv/bin/python3",
+      "args": ["/home/$USER/savetokens4claude/server.py"]
+    }
+  }
+}
+EOF
+```
+
+Then open Claude Code inside your project:
+
+```bash
+cd /path/to/your-project
+claude
+```
+
+Claude Code detects `.mcp.json` automatically — no restart needed.
 
 ---
 
@@ -158,7 +183,7 @@ Close and reopen Claude Desktop. The five tracker tools will now appear in Claud
 Once registered, Claude can call these tools on your behalf:
 
 ### `scan_plugins`
-Lists every MCP server discovered in Claude Desktop's global config and any project-level `.mcp.json` files found by walking up from the current directory.
+Lists every MCP server discovered in Claude Desktop's global config and any project-level `.mcp.json` files.
 
 ```
 Example output:
@@ -199,7 +224,7 @@ Example output:
 ---
 
 ### `generate_report`
-Generates the full HTML dashboard from all recorded sessions and opens it in your default browser.
+Generates the full HTML dashboard and opens it in your default browser.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -212,6 +237,11 @@ Example output:
   Sessions : 180
   Plugins  : 5
   Browser  : opened automatically ✓
+```
+
+Open manually on Linux:
+```bash
+xdg-open ~/.mcp-tracker/report.html
 ```
 
 ---
@@ -244,19 +274,19 @@ Permanently erases all recorded usage data from `~/.mcp-tracker/usage.json`.
 ## 💡 Recommended Workflow
 
 ```
-1. Ask Claude to use any MCP tool (e.g. search GitHub, query a database, read a file).
-2. After the response, ask Claude to call  track_call  with the plugin name,
-   tool name, the input/output, and the duration.
-3. Repeat for other tool calls throughout your session.
-4. When ready, ask Claude to  generate_report  to open the dashboard.
+1. Open Claude Code inside your project (cd your-project && claude).
+2. Ask Claude to use any MCP tool (search GitHub, query a DB, read a file, etc.).
+3. After the response, ask Claude to call track_call to log the usage.
+4. Repeat throughout your session.
+5. When ready, ask Claude to generate_report — the dashboard opens automatically.
 ```
 
-**Example prompt to Claude:**
+**Example prompt:**
 
 ```
 Use github-mcp to search for Python MCP servers.
-After you get the result, track the call with track_call so we can see the token usage.
-When done, generate the report.
+After you get the result, track the call with track_call.
+When done, generate the token usage report.
 ```
 
 ---
@@ -265,7 +295,7 @@ When done, generate the report.
 
 ### Adjusting token pricing
 
-Edit the constants at the top of `tracker.py`:
+Edit `tracker.py`:
 
 ```python
 # USD per 1 000 tokens — adjust to match your actual model pricing
@@ -275,25 +305,10 @@ OUTPUT_COST_PER_1K = 0.015
 
 ### Changing the report output path
 
-Edit `REPORT_PATH` in `server.py`:
+Edit `server.py`:
 
 ```python
 REPORT_PATH = Path.home() / ".mcp-tracker" / "report.html"
-```
-
-### Using a virtual environment with Claude Desktop
-
-If you installed dependencies inside a venv, point Claude Desktop to the venv's Python binary:
-
-```json
-{
-  "mcpServers": {
-    "mcp-token-tracker": {
-      "command": "/absolute/path/to/savetokens4claude/.venv/bin/python3",
-      "args": ["/absolute/path/to/savetokens4claude/server.py"]
-    }
-  }
-}
 ```
 
 ---
@@ -301,24 +316,24 @@ If you installed dependencies inside a venv, point Claude Desktop to the venv's 
 ## 🏗️ Architecture
 
 ```
-Claude Desktop
+Claude Desktop / Claude Code (CLI)
      │
      │  stdio (MCP protocol)
      ▼
-┌─────────────┐      reads      ┌─────────────────────┐
-│  server.py  │◄───────────────►│  config_reader.py   │
-│  (MCP server)│                │  (plugin discovery) │
-└──────┬──────┘                 └─────────────────────┘
-       │
-       │  log / read
-       ▼
-┌─────────────┐   aggregates   ┌─────────────────────┐
-│  tracker.py │───────────────►│ report_generator.py │
-│  (storage)  │                │ (Plotly dashboard)  │
-└─────────────┘                └──────────┬──────────┘
-~/.mcp-tracker/                           │
-  usage.json                              ▼
-                                 report.html (browser)
+┌──────────────────────┐   reads   ┌─────────────────────┐
+│      server.py       │◄─────────►│  config_reader.py   │
+│  (mcp-save-tokens-   │           │  (plugin discovery) │
+│    4-claude)         │           └─────────────────────┘
+└──────────┬───────────┘
+           │ log / read
+           ▼
+┌─────────────────┐  aggregates  ┌──────────────────────┐
+│   tracker.py    │─────────────►│  report_generator.py │
+│   (storage)     │              │  (Plotly dashboard)  │
+└─────────────────┘              └──────────┬───────────┘
+~/.mcp-tracker/                             │
+  usage.json                                ▼
+                                   report.html (browser)
 ```
 
 ---
@@ -336,21 +351,21 @@ Claude Desktop
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here are some ideas for future improvements:
+Contributions are welcome! Ideas for future improvements:
 
 - [ ] Auto-intercept proxy mode (wrap other MCP servers transparently)
 - [ ] SQLite backend for larger datasets
 - [ ] Cost alerts / budget thresholds
 - [ ] Export to CSV / Excel
-- [ ] Dark / light theme toggle in the dashboard
+- [ ] Claude Code plugin marketplace listing (`.claude-plugin/marketplace.json`)
 - [ ] GitHub Actions CI
 
 To contribute:
 
 ```bash
-git clone https://github.com/BRUNEXX13/savetokens4claude.git
+git clone --branch blog https://github.com/BRUNEXX13/savetokens4claude.git
 cd savetokens4claude
-python -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 # make your changes, then open a pull request
 ```
@@ -368,5 +383,6 @@ MIT — see [LICENSE](LICENSE) for details.
 - [Model Context Protocol — official docs](https://modelcontextprotocol.io)
 - [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
 - [Claude Desktop](https://claude.ai/download)
+- [Claude Code](https://claude.ai/code)
 - [tiktoken](https://github.com/openai/tiktoken)
 - [Plotly Python](https://plotly.com/python/)

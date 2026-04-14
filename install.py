@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-install.py — MCP Token Tracker one-command installer
+install.py — SaveTokens4Claude one-command installer
 
 Usage
 -----
-  python3 install.py            # install to ~/mcp-token-tracker
+  python3 install.py            # install to ~/savetokens4claude
   python3 install.py --dir /custom/path
   python3 install.py --uninstall
 
@@ -28,7 +28,7 @@ from pathlib import Path
 REPO_URL    = "https://github.com/BRUNEXX13/savetokens4claude.git"
 REPO_BRANCH = "blog"
 SERVER_NAME = "mcp-save-tokens-4-claude"
-DEFAULT_DIR = Path.home() / "mcp-token-tracker"
+DEFAULT_DIR = Path.home() / "savetokens4claude"
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ def python_bin(install_dir: Path) -> Path:
 
 def install(install_dir: Path) -> None:
     print()
-    print("\033[1m⚡ MCP Token Tracker — Installer\033[0m")
+    print("\033[1m⚡ SaveTokens4Claude — Installer\033[0m")
     print("─" * 40)
 
     # 1. Clone or pull
@@ -143,7 +143,7 @@ def install(install_dir: Path) -> None:
 
 def uninstall(install_dir: Path) -> None:
     print()
-    print("\033[1m⚡ MCP Token Tracker — Uninstaller\033[0m")
+    print("\033[1m⚡ SaveTokens4Claude — Uninstaller\033[0m")
     print("─" * 40)
 
     # Remove from config
